@@ -5,7 +5,7 @@
 #include <stdlib.h>
 
 #define NUM_CHILDS 5
-#define NUM_FILEOPERATIONS 2
+#define NUM_FILEOPERATIONS 20000
 
 int filework(FILE *fp);
 
@@ -29,9 +29,8 @@ int main(int argc, char** argv)
       for(int c=0; c<NUM_FILEOPERATIONS; c++)
       {
         filework(fp);
-
-        exit(EXIT_SUCCESS);
       }
+        exit(EXIT_SUCCESS);
     }
     else
     {
