@@ -6,3 +6,6 @@ all:
 clean:
 	rm *.o
 	rm aufg*
+
+reset:
+	rm zahl.dat && echo "0" > zahl.dat
