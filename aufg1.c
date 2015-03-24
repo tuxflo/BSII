@@ -11,7 +11,7 @@ int filework(FILE *fp);
 
 int main(int argc, char** argv)
 {
-  int pid;
+  int pid, wpid;
   int status;
   int final_number;
   FILE *fp = NULL;
@@ -32,20 +32,18 @@ int main(int argc, char** argv)
       }
         exit(EXIT_SUCCESS);
     }
-    else
-    {
-      wait(&status);
-      printf("Rückgabewert der Kinder: %d\n", status);
-      fp = fopen("./zahl.dat", "r");
-      if(fp == NULL)
-      {
-        perror("Fehler beim öffnen der Datei");
-        return EXIT_FAILURE;
-      }
-      fscanf(fp, "%d", &final_number);
-      printf("Wert nach Abschluss der Kindprozesse: %d\n", final_number);
-    }
   }
+  /*while((wpid = wait(&status)) > 0);*/
+  waitpid(pid, &status, 0);
+  printf("Rückgabewert der Kinder: %d\n", status);
+  fp = fopen("./zahl.dat", "r");
+  if(fp == NULL)
+  {
+    perror("Fehler beim öffnen der Datei");
+    return EXIT_FAILURE;
+  }
+  fscanf(fp, "%d", &final_number);
+  printf("Wert nach Abschluss der Kindprozesse: %d\n", final_number);
   return 0;
 }
 
