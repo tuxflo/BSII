@@ -1,7 +1,7 @@
 CC=gcc
 CFLAGS=-Wall -std=c11
-all: 
-	$(CC) $(CFLAGS) aufg1.c -o aufg1.o
+all:
+	$(CC) $(CFLAGS) aufg2.c -o aufg2.o
 
 clean:
 	rm *.o
