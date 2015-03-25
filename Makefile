@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-Wall -std=c11
+CFLAGS=-Wall -D_XOPEN_SOURCE=700 -std=c11
 all:
 	$(CC) $(CFLAGS) aufg2.c -o aufg2.o
 
