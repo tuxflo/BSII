@@ -15,7 +15,7 @@ void p(int semid)
     perror("Fehler bei semop()\n");
     exit(EXIT_FAILURE);
   }
-  printf("\nWarte bis der Sohn mich deblockiert...\n");
+  printf("Warte bis der Sohn mich deblockiert...\n");
 }
 
 void v(int semid)
