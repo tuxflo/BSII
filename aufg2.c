@@ -5,28 +5,23 @@
 #include <sys/sem.h>
 #include <stdlib.h>
 
-#define NUM_CHILDS 5
-#define NUM_FILEOPERATIONS 20000
-
 void p(int semid)
 {
   int tmp;
-  struct sembuf semaphore = { 0, -1, IPC_NOWAIT }; 
-  tmp = semop(semid, &semaphore, 1); 
+  struct sembuf semaphore = { 0, -1, SEM_UNDO};
+  tmp = semop(semid,&semaphore,1);
   if(tmp == -1)
   {
     perror("Fehler bei semop()\n");
     exit(EXIT_FAILURE);
   }
-  printf("P() ausgeführt, Semaphore für kritischen abschnitt gelockt\n");
-
-  /*semop(semid, 0, 1);*/
+  printf("\nWarte bis der Sohn mich deblockiert...\n");
 }
 
 void v(int semid)
 {
   int tmp;
-  struct sembuf semaphore = { 0, 1, IPC_NOWAIT };
+  struct sembuf semaphore = { 0, 1, SEM_UNDO};
   tmp = semop(semid, &semaphore, 1);
   if(tmp == -1)
   {
@@ -35,13 +30,13 @@ void v(int semid)
   }
   printf("V() ausgeführt, Semaphore nach kririschem Abnschitt freigegeben\n");
 }
+
 int main(int argc, char** argv)
 {
   int pid, tmp;
   int status;
   int semid;
-
-  semid = semget(IPC_PRIVATE, 1, IPC_CREAT | IPC_EXCL | 0700);
+  semid = semget(IPC_PRIVATE, 1, IPC_CREAT | IPC_EXCL | 0755);
   if(semid < 0)
   {
     perror("Fehler beim Anlegen des Semaphors!");
@@ -49,13 +44,12 @@ int main(int argc, char** argv)
   }
   printf("Semaphore angelegt! ID:%d \n", semid);
   //Semaphore auf 1 setzen (geschlossen)
-  tmp = semctl(semid, 0, SETVAL, (int) 1);
+  tmp = semctl(semid, 0, SETVAL, 1);
   if(tmp == -1)
   {
     perror("Fehler beim Schliessen des Semaphores");
     exit(EXIT_FAILURE);
   }
-  p(semid);
 
   //einzelnen Sohn erzeugen
   pid = fork();
@@ -72,6 +66,8 @@ int main(int argc, char** argv)
       exit(EXIT_SUCCESS);
 
     default: //Vater Prozess
+      printf("Ich bin der Vater!\n");
+      p(semid);
       waitpid(pid, &status, 0);
       printf("Rückgabewert des Sohnes: %d\n", status);
       printf("Semaphore beenden...\n");
