@@ -31,12 +31,10 @@ void v(int semid)
   printf("V() ausgeführt, Semaphore nach kririschem Abnschitt freigegeben\n");
 }
 
-
-int main(int argc, char** argv)
+int create_sem()
 {
-  int pid, tmp;
-  int status;
   int semid;
+  int tmp;
   semid = semget(IPC_PRIVATE, 1, IPC_CREAT | IPC_EXCL | 0755);
   if(semid < 0)
   {
@@ -51,7 +49,14 @@ int main(int argc, char** argv)
     perror("Fehler beim Schliessen des Semaphores");
     exit(EXIT_FAILURE);
   }
+  return semid;
+}
 
+int main(int argc, char** argv)
+{
+  int pid, tmp;
+  int status;
+  int semid = create_sem();
   //einzelnen Sohn erzeugen
   pid = fork();
   switch(pid)
