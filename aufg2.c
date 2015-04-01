@@ -31,6 +31,7 @@ void v(int semid)
   printf("V() ausgeführt, Semaphore nach kririschem Abnschitt freigegeben\n");
 }
 
+
 int main(int argc, char** argv)
 {
   int pid, tmp;
@@ -68,7 +69,9 @@ int main(int argc, char** argv)
     default: //Vater Prozess
       printf("Ich bin der Vater!\n");
       p(semid);
-      waitpid(pid, &status, 0);
+      tmp= waitpid(pid, &status, 0);
+      if(tmp != -1)
+        return EXIT_FAILURE;
       printf("Rückgabewert des Sohnes: %d\n", status);
       printf("Semaphore beenden...\n");
       tmp = semctl(semid, 0, IPC_RMID, 0);
