@@ -4,7 +4,7 @@
 #include <sys/wait.h>
 #include <stdlib.h>
 #include <sys/sem.h>
-#define NUM_CHILDS 5
+#define NUM_CHILDS 15
 
 
 /*try to solve the readers/wrtiters problem (simple solution)*/
@@ -21,7 +21,7 @@ void p(int semid)
     perror("Fehler bei semop()\n");
     exit(EXIT_FAILURE);
   }
-  printf("Wert des Semaphores %d\n", semctl(semid, 0, GETVAL, 0));
+  //printf("Wert des Semaphores %d\n", semctl(semid, 0, GETVAL, 0));
 }
 
 void v(int semid)
@@ -106,6 +106,9 @@ int reader_code(int mutex, int wri)
 
 int writer_code(int mutex, int wri)
 {
+  p(wri);
+  sleep(2);
+  v(wri);
   return 0;
 }
 /*ugly global semaphore to avoid shared memory segment, using it as counting variable*/
@@ -132,12 +135,12 @@ int main(int argc, char** argv)
     {
       if(i%2) //gerade Anzahl, erzeuge Leser
       {
-        printf("Ich bin das Leser Nummer %i \n", i+1);
+        printf("Ich bin der Leser Nummer %i \n", i+1);
         reader_code(mutex, wri);
       }
       else
       {
-        printf("Ich bin das Leser Nummer %i \n", i+1);
+        printf("Ich bin der Schreiber Nummer %i \n", i+1);
         writer_code(mutex, wri);
       }
         exit(EXIT_SUCCESS);
@@ -150,7 +153,10 @@ int main(int argc, char** argv)
     perror("Fehler bei wait()");
     exit(EXIT_FAILURE);
   }
-  printf("Ich bin der Vater!\n");
+  printf("Ich bin der Vater und beende die Semaphoren...\n");
+  remove_sem(mutex);
+  remove_sem(wri);
+  remove_sem(rc);
   //printf("Wert des Semaphores %d\n", semctl(semid, 0, GETVAL, 0));
   return 0;
 }
