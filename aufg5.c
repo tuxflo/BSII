@@ -4,10 +4,12 @@
 #include <sys/wait.h>
 #include <stdlib.h>
 #include <sys/sem.h>
+#define NUM_CHILDS 5
 
 
 /*try to solve the readers/wrtiters problem (simple solution)*/
 
+int rc;
 
 void p(int semid)
 {
@@ -54,8 +56,10 @@ int create_sem(int value)
   }
   return semid;
 }
+
 int remove_sem(int semid)
 {
+  int tmp;
   printf("Semaphore beenden...\n");
   tmp = semctl(semid, 0, IPC_RMID, 0);
   if(tmp < 0)
@@ -63,47 +67,91 @@ int remove_sem(int semid)
     perror("Fehler beim Löschen des Semaphores!\n");
     exit(EXIT_FAILURE);
   }
+  return 0;
 }
 
-int reader_code()
+int reader_code(int mutex, int wri)
 {
+  int tmp;
+  p(mutex);
+  int rc_val = semctl(rc, 0, GETVAL, 0);
+  printf("rc_val Wert: %d\n", rc_val);
+  rc_val++;
+  tmp = semctl(rc, 0, SETVAL, rc_val);
+  if(tmp == -1)
+  {
+    perror("Fehler beim setzen des Semaphoreswertes");
+    exit(EXIT_FAILURE);
+  }
+  if(semctl(rc, 0, GETVAL, 0) == 1)
+    p(wri);
+
+  v(mutex);
+  p(mutex);
+
+  rc_val = semctl(rc, 0, GETVAL, 0);
+  printf("rc_val Wert: %d\n", rc_val);
+  rc_val = rc_val - 1;
+  tmp = semctl(rc, 0, SETVAL, rc_val);
+  if(tmp == -1)
+  {
+    perror("Fehler beim setzen des Semaphoreswertes");
+    exit(EXIT_FAILURE);
+  }
+  if(semctl(rc, 0, GETVAL, 0) == 0)
+    v(wri);
+  v(mutex);
+  return 0;
 }
 
-int writer_code()
+int writer_code(int mutex, int wri)
 {
+  return 0;
 }
-/*ugly global semaphore to avoid shared memory segment*/
+/*ugly global semaphore to avoid shared memory segment, using it as counting variable*/
 
-int rc = create_sem(0);
+
 
 int main(int argc, char** argv)
 {
+  rc = create_sem(0);
   int wri, mutex;
+  int pid, wpid;
  //semaphoren für  writer  und mutex geschlossen initialisieren
   wri = create_sem(1);
   mutex = create_sem(1);
-  //einzelnen Sohn erzeugen
-  pid = fork();
-  switch(pid)
+  for(int i=0; i<NUM_CHILDS; i++)
   {
-    case -1:
+    pid = fork();
+    if(pid < 0)
+    {
       perror("Fehler bei fork()");
       return EXIT_FAILURE;
-
-    case 0: // reader Prozess
-      printf("Ich bin der Leser!\n");
-      reader_code();
-      exit(EXIT_SUCCESS);
+    }
+    else if(pid == 0) // Kind Prozess
+    {
+      if(i%2) //gerade Anzahl, erzeuge Leser
+      {
+        printf("Ich bin das Leser Nummer %i \n", i+1);
+        reader_code(mutex, wri);
+      }
+      else
+      {
+        printf("Ich bin das Leser Nummer %i \n", i+1);
+        writer_code(mutex, wri);
+      }
+        exit(EXIT_SUCCESS);
+    }
   }
-  writer_code();
-  pid = wait(NULL);
+  //auf alle Kinder warten...
+  while((wpid = wait(NULL)) > 0);
   if(pid == -1)
   {
     perror("Fehler bei wait()");
     exit(EXIT_FAILURE);
   }
   printf("Ich bin der Vater!\n");
-  printf("Wert des Semaphores %d\n", semctl(semid, 0, GETVAL, 0));
+  //printf("Wert des Semaphores %d\n", semctl(semid, 0, GETVAL, 0));
   return 0;
 }
 
