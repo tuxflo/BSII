@@ -1,7 +1,7 @@
 CC=gcc
 CFLAGS=-Wall -D_XOPEN_SOURCE=700 -std=c11
 all:
-	$(CC) $(CFLAGS) aufg5.c -o aufg5.o
+	$(CC) $(CFLAGS) aufg6.c -o aufg6.o
 
 clean:
 	rm *.o

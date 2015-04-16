@@ -4,7 +4,7 @@
 #include <sys/wait.h>
 #include <stdlib.h>
 #include <sys/sem.h>
-#define NUM_CHILDS 15
+#define NUM_CHILDREN 100
 
 
 /*try to solve the readers/wrtiters problem (simple solution)*/
@@ -75,7 +75,7 @@ int reader_code(int mutex, int wri)
   int tmp;
   p(mutex);
   int rc_val = semctl(rc, 0, GETVAL, 0);
-  printf("rc_val Wert: %d\n", rc_val);
+  /*printf("rc_val Wert: %d\n", rc_val);*/
   rc_val++;
   tmp = semctl(rc, 0, SETVAL, rc_val);
   if(tmp == -1)
@@ -90,7 +90,7 @@ int reader_code(int mutex, int wri)
   p(mutex);
 
   rc_val = semctl(rc, 0, GETVAL, 0);
-  printf("rc_val Wert: %d\n", rc_val);
+  /*printf("rc_val Wert: %d\n", rc_val);*/
   rc_val = rc_val - 1;
   tmp = semctl(rc, 0, SETVAL, rc_val);
   if(tmp == -1)
@@ -101,6 +101,7 @@ int reader_code(int mutex, int wri)
   if(semctl(rc, 0, GETVAL, 0) == 0)
     v(wri);
   v(mutex);
+  printf("Fertig mit Lesen!\n");
   return 0;
 }
 
@@ -109,6 +110,7 @@ int writer_code(int mutex, int wri)
   p(wri);
   sleep(2);
   v(wri);
+  printf("Fertig mit Schreiben!\n");
   return 0;
 }
 /*ugly global semaphore to avoid shared memory segment, using it as counting variable*/
@@ -123,7 +125,7 @@ int main(int argc, char** argv)
  //semaphoren für  writer  und mutex geschlossen initialisieren
   wri = create_sem(1);
   mutex = create_sem(1);
-  for(int i=0; i<NUM_CHILDS; i++)
+  for(int i=0; i<NUM_CHILDREN; i++)
   {
     pid = fork();
     if(pid < 0)
@@ -133,14 +135,14 @@ int main(int argc, char** argv)
     }
     else if(pid == 0) // Kind Prozess
     {
-      if(i%2) //gerade Anzahl, erzeuge Leser
+      if(i < 95) //gerade Anzahl, erzeuge Leser
       {
-        printf("Ich bin der Leser Nummer %i \n", i+1);
+        /*printf("Ich bin der Leser Nummer %i \n", i+1);*/
         reader_code(mutex, wri);
       }
       else
       {
-        printf("Ich bin der Schreiber Nummer %i \n", i+1);
+        /*printf("Ich bin der Schreiber Nummer %i \n", i+1);*/
         writer_code(mutex, wri);
       }
         exit(EXIT_SUCCESS);
