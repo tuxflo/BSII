@@ -6,7 +6,12 @@
 #include <sys/wait.h>
 #include <stdlib.h>
 #include <time.h>
-
+#include <signal.h>
+//Signalhandler um Server richtig zu beenden...
+void sig_handler(int signum)
+{
+	    printf("Received signal %d\n", signum);
+}
 //Server code
 
 int get_key()
@@ -26,21 +31,22 @@ int get_key()
   }
 }
 
-void create_shm(int key)
+int create_shm(int shmid)
 {
   int shm;
-  shm = shmget(key, 4096, IPC_CREAT | 0600);
+  shm = shmget(shmid, 4096, IPC_CREAT | 0600);
   if(shm < 0)
   {
     perror("Fehler bei shmget!\n");
     exit(EXIT_FAILURE);
   }
+  return shm;
 }
 
-void delete_shm(int key)
+void delete_shm(int shmid)
 {
   int tmp;
-  tmp = shmctl(key, IPC_RMID, NULL);
+  tmp = shmctl(shmid, IPC_RMID, NULL);
   if(tmp < 0)
   {
     perror("Fehler beim Löschen des SHM!\n");
@@ -48,24 +54,33 @@ void delete_shm(int key)
   }
 }
 
-void write_time(int key)
+void write_time(int shmid)
 {
-  int tmp = shmat();
-    if(tmp ==(void*) == -1)
+  char *tmp;
+  tmp = (char*)shmat(shmid, NULL, 0);
+    if(tmp ==(void*) -1)
     {
       perror("Fehler bei shmat()!\n");
       exit(EXIT_FAILURE);
     }
-  while(true)
+  while(1)
   {
 
-    time_t t = time();
+    time_t *t;
+    time(t);
+    char *tstring;
+    tstring = ctime(t);
+    strcpy(tmp, tstring);
+    sleep(1);
   }
 }
+
 int main()
 {
-  int key = get_key();
-  create_shm(key);
-  delete_shm(key);
+  signal(SIGINT, sig_handler);
+  int token = get_key();
+  int shmid = create_shm(token);
+  write_time(shmid);
+  delete_shm(shmid);
   return 0;
 }
