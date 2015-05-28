@@ -33,8 +33,7 @@ int main(int argc, char** argv)
         exit(EXIT_SUCCESS);
     }
   }
-  /*while((wpid = wait(&status)) > 0);*/
-  waitpid(pid, &status, 0);
+  while((wpid = wait(&status)) > 0);
   printf("Rückgabewert der Kinder: %d\n", status);
   fp = fopen("./zahl.dat", "r");
   if(fp == NULL)

@@ -11,24 +11,49 @@
 
 #include "share.h"
 
+// global var for quiting the loop
+int loop;
 int msgid;
-
-//Client code
-int main()
+//Signalhandler um Server richtig zu beenden...
+void sig_handler(int signum)
 {
-  int pid;
-  int rc;
-  struct msg_buf {
-    long mtype;
-    char mtext[MAXSIZE]; //Max length of message text defined in share.h
-  } msg;
+  if(signum == 2)
+  {
+    int rc;
+    //quit the message queue
+    rc=msgctl(msgid,IPC_RMID,NULL);
+    if (rc < 0) {
+      perror("Fehler bei msgctl()!\n");
+      exit(EXIT_FAILURE);
+    }
+    printf("message queue %d is removed\n",msgid);
+  }
+}
 
-  msgid = msgget(INKEY, 0);
+//Server code
+int create_queue()
+{
+  int id = msgget(INKEY, IPC_CREAT | 00400 | 00200);
   if(id < 0)
   {
     perror("Fehler bei msgget()!\n!");
     exit(EXIT_FAILURE);
   }
+  printf("Messagequeue created ID: %d\n", id);
+  return id;
+}
+int main()
+{
+  int pid;
+  int rc;
+  loop = 1;
+  struct msg_buf {
+    long mtype;
+    char mtext[MAXSIZE]; //Max length of message text defined in share.h
+  } msg;
+
+  signal(SIGINT, sig_handler);
+  msgid = create_queue();
   // read the message from queue
   while(loop)
   {

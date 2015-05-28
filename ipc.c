@@ -9,6 +9,8 @@
 #include <sys/msg.h>
 #include <signal.h>
 
+#include "share.h"
+
 // global var for quiting the loop
 int loop;
 int msgid;
@@ -38,18 +40,21 @@ int main()
 
   struct msg_buf {
     long mtype;
-    char mtext[128]; //Max length of message text = 128
+    char mtext[MAXSIZE]; //Max length of message text defined in share.h
   } msg;
 
   signal(SIGINT, sig_handler);
-  msgid = msgget(IPC_PRIVATE, IPC_CREAT | 00400 | 00200);
+  msgid = msgget(INKEY, IPC_CREAT | 00400 | 00200);
   if(msgid < 0)
   {
     perror("Fehler bei msgget()!\n!");
     exit(EXIT_FAILURE);
   }
   printf("Messagequeue created ID: %d\n", msgid);
+  while(1)
+  {
   // read the message from queue
+  rc = msgrcv(msgid, &msg, sizeof(msg.mtext), 0, 0);
   pid = fork();
   if(pid < 0)
   {
@@ -60,8 +65,7 @@ int main()
 
   else if(pid == 0) // Kind Prozess
   {
-    printf("Ich bin das Kind \n");
-    rc = msgrcv(msgid, &msg, sizeof(msg.mtext), 0, 0);
+    printf("I am a child... \n");
     if (rc < 0)
     {
       perror("receive failed!\n");
@@ -81,7 +85,7 @@ int main()
   {
     // message to send
     msg.mtype = 1; // set the type of message
-    sprintf (msg.mtext, "%s\n", "a text msg..."); /* setting the right time format by means of ctime() */
+    sprintf (msg.mtext, "%s", "my_awesome_file"); /* setting the right time format by means of ctime() */
 
     // send the message to queue
     rc = msgsnd(msgid, &msg, sizeof(msg.mtext), 0); // the last param can be: 0, IPC_NOWAIT, MSG_NOERROR, or IPC_NOWAIT|MSG_NOERROR

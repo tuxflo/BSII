@@ -1,7 +1,7 @@
 CC=gcc
 CFLAGS=-Wall -D_XOPEN_SOURCE=700 -std=c11
 all:
-	$(CC) $(CFLAGS) ipc.c -o ipc.o
+	$(CC) $(CFLAGS) client.c -o client.o
 
 clean:
 	rm *.o
