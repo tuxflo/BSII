@@ -33,7 +33,7 @@ void sig_handler(int signum)
 //Server code
 int create_queue()
 {
-  int id = msgget(INKEY, IPC_CREAT | 00400 | 00200);
+  int id = msgget(INKEY, IPC_CREAT | 0600);
   if(id < 0)
   {
     perror("Fehler bei msgget()!\n!");
@@ -73,19 +73,17 @@ int main()
       }
       else if(pid == 0) // Kind Prozess
       {
-        printf("I am a child... \n");
+        /*printf("I am a child... \n");*/
         // Kind Code
         printf("received msg: %s\n", msg.mtext);
         char cp[256];
         sprintf(cp, "cp %s /tmp", msg.mtext);
         printf("executing system() with %s\n", cp);
-        exit(EXIT_SUCCESS);
-      }
-      else //Vater Prozess
-      {
-        wait(NULL);
+        system(cp);
         return 0;
       }
     }
   }
+  wait(NULL);
+  return 0;
 }
